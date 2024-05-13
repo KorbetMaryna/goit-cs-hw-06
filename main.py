@@ -3,7 +3,7 @@ import mimetypes
 import logging
 
 from urllib.parse import urlparse, unquote_plus
-from threading import Thread
+from multiprocessing import Process
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pathlib import Path
@@ -107,8 +107,14 @@ def run_socket_server():
         logging.info("Socket server stopped")
         s.close()
 
-if __name__ == "__main__": 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(threadName)s - %(message)s")
-    Thread(target=run_http_server, name="HTTP_Server").start()
-    Thread(target=run_socket_server, name="SOCKET_Server").start()
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(processName)s - %(message)s")
+    http_process = Process(target=run_http_server, name="HTTP_Server")
+    socket_process = Process(target=run_socket_server, name="SOCKET_Server")
+
+    http_process.start()
+    socket_process.start()
+    
+    http_process.join()
+    socket_process.join()
 
